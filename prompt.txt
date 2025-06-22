@@ -1,0 +1,2 @@
+Ive an idea to create a dev tools application called devNeeds. This will have many tools that developers need in a day to day basis. This is inspired by the windows app devToys. 
+I would like to create this application using go and webview. I havnet used either of the technologies before. Give me a guide on how to go about it, include best practices, how go folder is structured and general working practices. Highlight best methods to follow to utilise the features what go is best for.

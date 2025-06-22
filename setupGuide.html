@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevNeeds: Go and Cobra Development Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better readability and aesthetics */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light gray background */
+            color: #334155; /* Darker text color */
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            color: #1e293b; /* Dark blue-gray for headings */
+            border-bottom: 2px solid #cbd5e1; /* Light gray border for separation */
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        h2 {
+            color: #1e293b;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: #334155;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        pre {
+            background-color: #e2e8f0; /* Lighter gray for code blocks */
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            color: #1a202c; /* Dark text for code */
+            white-space: pre-wrap; /* Ensure code wraps */
+        }
+        code {
+            background-color: #e2e8f0;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        strong {
+            font-weight: 600; /* Stronger bold */
+            color: #1e293b;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 lg:p-8">
+    <div class="container">
+        <h1 class="text-4xl font-bold mb-6 rounded-md">DevNeeds: Building a CLI Application with Go and Cobra</h1>
+
+        <p class="text-lg leading-relaxed mb-8">This guide will walk you through setting up your <code>devNeeds</code> project using Go and the Cobra CLI framework, focusing on best practices and preparing for a future GUI.</p>
+
+        <h2 class="text-3xl font-semibold mb-4 rounded-md">1. Why Go and Cobra for <code>devNeeds</code>?</h2>
+
+        <div class="mb-6">
+            <h3 class="text-2xl font-medium mb-2">Go (Golang):</h3>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Performance:</strong> Go compiles to a single, statically linked binary, resulting in fast execution times.</li>
+                <li><strong>Concurrency:</strong> Built-in concurrency primitives (goroutines and channels) make it easy to write parallel and responsive code, though less critical for these initial tools.</li>
+                <li><strong>Simplicity &amp; Readability:</strong> Go's syntax is clean and easy to learn, promoting highly readable code.</li>
+                <li><strong>Strong Standard Library:</strong> Go has a rich standard library that covers most common needs, reducing reliance on third-party packages.</li>
+                <li><strong>Cross-Platform Compilation:</strong> Easily compile your application for various operating systems (Windows, macOS, Linux) and architectures from a single codebase.</li>
+            </ul>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="text-2xl font-medium mb-2">Cobra:</h3>
+            <ul class="list-disc pl-5 space-y-2">
+                <li><strong>Powerful CLI Framework:</strong> Cobra is a popular and robust library for creating powerful modern command-line applications, similar to <code>git</code> or <code>kubectl</code>.</li>
+                <li><strong>Nested Commands:</strong> Supports arbitrary nesting of commands, perfect for <code>devNeeds</code> with many sub-tools.</li>
+                <li><strong>Flags &amp; Arguments:</strong> Handles parsing of command-line flags and arguments, including persistent and local flags.</li>
+                <li><strong>Generated Code:</strong> Can generate command stubs, speeding up development.</li>
+                <li><strong>Automatic Help:</strong> Provides automatic help generation for commands and flags.</li>
+            </ul>
+        </div>
+
+        <h2 class="text-3xl font-semibold mb-4 rounded-md">2. Go Project Structure: The Standard Layout</h2>
+
+        <p class="mb-4">Following a standard Go project layout promotes consistency and makes your project easier to understand and maintain.</p>
+
+        <pre class="bg-gray-200 p-4 rounded-lg text-sm mb-6"><code>devneeds/
+├── cmd/
+│   └── devneeds/
+│       └── main.go       # Main entry point for the CLI application
+│       └── root.go       # Cobra root command setup
+│       └── json.go       # Cobra command for JSON tools (formatter, validator)
+│       └── base64.go     # Cobra command for Base64 tools
+│       └── hash.go       # Cobra command for Hash tools
+│       └── ... (other tool commands)
+├── pkg/
+│   ├── jsonutil/         # Package for JSON-related utilities
+│   │   ├── formatter.go  # Contains JSON formatting logic
+│   │   └── validator.go  # Contains JSON validation logic
+│   ├── base64util/       # Package for Base64 encoding/decoding
+│   │   └── converter.go
+│   ├── hashutil/         # Package for Hash generation
+│   │   └── generator.go
+│   ├── uuidutil/         # Package for UUID generation
+│   │   └── generator.go
+│   ├── timeutil/         # Package for Timestamp conversion
+│   │   └── converter.go
+│   ├── clipboard/        # Package for Clipboard operations
+│   │   └── copy.go
+│   ├── textutil/         # Package for general text utilities
+│   │   ├── caseconverter.go
+│   │   └── linecounter.go
+│   ├── urlutil/          # Package for URL encoding/decoding
+│   │   └── converter.go
+│   └── util/             # General helper utilities (e.g., input reading)
+│       └── input.go
+├── go.mod                # Go module definition (dependencies)
+├── go.sum                # Checksum for dependencies
+├── Makefile              # (Optional) For build, test, run commands
+├── README.md             # Project documentation
+</code></pre>
+
+        <ul class="list-disc pl-5 space-y-2 mb-6">
+            <li><strong><code>cmd/</code></strong>: Contains the main applications of your project. Each sub-directory here (e.g., <code>cmd/devneeds</code>) will typically have a <code>main.go</code> file that's compiled into an executable. This is where your Cobra CLI commands are defined and orchestrated.</li>
+            <li><strong><code>pkg/</code></strong>: This is crucial for your future GUI. It contains <strong>reusable library code</strong> that can be imported by different parts of your project (like your CLI <code>cmd/devneeds</code>) or even by external projects. The core logic for each <code>devNeeds</code> tool (JSON formatting, Base64 encoding, etc.) should reside here. This way, your future GUI can simply import and call functions from <code>pkg/</code> without duplicating logic.</li>
+            <li><strong><code>internal/</code></strong>: (Not strictly needed for this project initially, but good to know) For private application code that you <em>don't</em> want to be importable by other projects.</li>
+            <li><strong><code>go.mod</code> &amp; <code>go.sum</code></strong>: Go's module system files for dependency management.</li>
+        </ul>
+
+        <h2 class="text-3xl font-semibold mb-4 rounded-md">3. General Go Working Practices and Best Methods</h2>
+
+        <ul class="list-disc pl-5 space-y-2 mb-6">
+            <li><strong>Go Modules:</strong> Always initialize your project as a Go module (<code>go mod init &lt;module-path&gt;</code>). This manages dependencies and builds your project correctly.</li>
+            <li><strong>Error Handling:</strong> Go uses a distinct approach to error handling. Functions that can fail typically return two values: the result and an <code>error</code>.
+                <pre class="bg-gray-200 p-3 rounded-lg text-sm mt-2"><code>result, err := someFunction()
+if err != nil {
+    // Handle the error (log, return, retry, etc.)
+    return err
+}
+// Use result</code></pre>
+                Don't panic! Use <code>panic</code> only for unrecoverable errors (e.g., a bug in your code that should never happen).
+            </li>
+            <li><strong>Modularity and Packages:</strong> Break down your code into small, focused packages (like <code>jsonutil</code>, <code>base64util</code> in <code>pkg/</code>). This improves organization, reusability, and testability.</li>
+            <li><strong>Clear Naming:</strong> Use descriptive names for variables, functions, and packages. Go prefers <code>camelCase</code> for variables and function names.</li>
+            <li><strong>Concurrency (<code>goroutines</code> and <code>channels</code>):</strong> While not heavily used in these simple tools, Go's concurrency model is a superpower. <code>goroutines</code> are lightweight threads managed by the Go runtime, and <code>channels</code> are used for safe communication between goroutines.</li>
+            <li><strong>Testing:</strong> Go has a built-in testing framework (<code>go test</code>). Write unit tests for all your <code>pkg/</code> functions to ensure correctness and prevent regressions. Test files typically end with <code>_test.go</code> and contain functions starting with <code>Test</code>.</li>
+            <li><strong><code>defer</code> Statement:</strong> Use <code>defer</code> to ensure resources (like files, network connections) are closed when the surrounding function returns, regardless of how it returns.
+                <pre class="bg-gray-200 p-3 rounded-lg text-sm mt-2"><code>file, err := os.Open("foo.txt")
+if err != nil {
+    return err
+}
+defer file.Close() // This will be called when the function exits</code></pre>
+            </li>
+            <li><strong>Linter (<code>go vet</code>, <code>golangci-lint</code>):</strong> Use a linter to catch common errors and enforce style guidelines.</li>
+            <li><strong>Documentation:</strong> Document your public functions and types with comments (<code>godoc</code> format).</li>
+            <li><strong><code>go fmt</code>:</strong> Automatically formats your Go code to a standard style. Run it often.</li>
+        </ul>
+
+        <h2 class="text-3xl font-semibold mb-4 rounded-md">4. Setting up Cobra CLI</h2>
+
+        <p class="mb-4">Let's outline the basic setup for your Cobra CLI.</p>
+
+        <p class="mb-2">First, initialize your Go module:</p>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>mkdir devneeds
+cd devneeds
+go mod init github.com/yourusername/devneeds # Replace with your actual module path
+go get github.com/spf13/cobra@latest</code></pre>
+
+        <p class="mb-4">Now, create the basic <code>main.go</code>, <code>root.go</code>, and <code>json.go</code> files as examples within <code>cmd/devneeds/</code>.</p>
+
+        <h3 class="text-2xl font-medium mb-2"><code>cmd/devneeds/main.go</code></h3>
+        <p class="mb-2">This is the entry point of your CLI application.</p>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>package main
+
+import (
+	"devneeds/cmd/devneeds/cmd" // Import your Cobra command package
+)
+
+func main() {
+	cmd.Execute() // Call Cobra's Execute method to run the root command
+}</code></pre>
+
+        <h3 class="text-2xl font-medium mb-2"><code>cmd/devneeds/root.go</code></h3>
+        <p class="mb-2">This defines your main <code>devneeds</code> command.</p>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>package cmd
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "devneeds",
+	Short: "devNeeds is a collection of essential developer tools",
+	Long: `devNeeds is a powerful and versatile command-line tool
+designed to streamline everyday development tasks.
+It provides a wide range of utilities from JSON formatting
+to hash generation, all accessible from your terminal.`,
+	// Uncomment the following line if your root command needs to run a function itself
+	// Run: func(cmd *cobra.Command, args []string) { fmt.Println("Welcome to devNeeds!") },
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func init() {
+	// Here you can define global flags that apply to all subcommands
+	// rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.devneeds.yaml)")
+
+	// Add subcommands here
+	rootCmd.AddCommand(jsonCmd)
+	rootCmd.AddCommand(base64Cmd)
+	rootCmd.AddCommand(hashCmd)
+	rootCmd.AddCommand(uuidCmd)
+	rootCmd.AddCommand(timestampCmd)
+	rootCmd.AddCommand(clipboardCmd)
+	rootCmd.AddCommand(caseCmd)
+	rootCmd.AddCommand(countCmd)
+	rootCmd.AddCommand(urlCmd)
+	rootCmd.AddCommand(validateCmd)
+}</code></pre>
+
+        <h3 class="text-2xl font-medium mb-2"><code>cmd/devneeds/json.go</code> (Example for a specific tool)</h3>
+        <p class="mb-2">This file defines the <code>json</code> subcommand and its subcommands (<code>format</code>, <code>validate</code>).</p>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>package cmd
+
+import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
+
+	"devneeds/pkg/jsonutil" // Import your pkg/jsonutil package
+	"devneeds/pkg/util"    // Import your pkg/util for input handling
+
+	"github.com/spf13/cobra"
+)
+
+var (
+	jsonInput string // Flag to hold input string
+	jsonFile  string // Flag to hold input file path
+)
+
+// jsonCmd represents the json command
+var jsonCmd = &cobra.Command{
+	Use:   "json",
+	Short: "JSON utilities (format, validate)",
+	Long:  `Provides tools for working with JSON strings, including formatting and validation.`,
+	// Run: func(cmd *cobra.Command, args []string) {
+	// 	cmd.Help() // Show help if no subcommand is given
+	// },
+}
+
+var formatCmd = &cobra.Command{
+	Use:   "format",
+	Short: "Pretty-prints JSON strings",
+	Long:  `Takes a JSON string or file and pretty-prints it with indentation.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		input, err := util.GetInput(jsonInput, jsonFile)
+		if err != nil {
+			return fmt.Errorf("failed to get input: %w", err)
+		}
+
+		if input == "" {
+			return fmt.Errorf("no input provided for JSON formatting. Use --input or --file.")
+		}
+
+		formattedJSON, err := jsonutil.FormatJSON(input)
+		if err != nil {
+			return fmt.Errorf("failed to format JSON: %w", err)
+		}
+
+		fmt.Println(formattedJSON)
+		return nil
+	},
+}
+
+var validateCmd = &cobra.Command{
+	Use:   "validate",
+	Short: "Validates if input is valid JSON",
+	Long:  `Checks if the provided string or file content is a valid JSON structure.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		input, err := util.GetInput(jsonInput, jsonFile)
+		if err != nil {
+			return fmt.Errorf("failed to get input: %w", err)
+		}
+
+		if input == "" {
+			return fmt.Errorf("no input provided for JSON validation. Use --input or --file.")
+		}
+
+		isValid := jsonutil.IsValidJSON(input)
+		if isValid {
+			fmt.Println("Input is valid JSON.")
+		} else {
+			fmt.Println("Input is NOT valid JSON.")
+		}
+		return nil
+	},
+}
+
+func init() {
+	// Add format and validate as subcommands to jsonCmd
+	jsonCmd.AddCommand(formatCmd)
+	jsonCmd.AddCommand(validateCmd)
+
+	// Define flags for the format and validate subcommands
+	formatCmd.Flags().StringVarP(&jsonInput, "input", "i", "", "JSON string input")
+	formatCmd.Flags().StringVarP(&jsonFile, "file", "f", "", "Read JSON input from a file")
+	validateCmd.Flags().StringVarP(&jsonInput, "input", "i", "", "JSON string input")
+	validateCmd.Flags().StringVarP(&jsonFile, "file", "f", "", "Read JSON input from a file")
+}</code></pre>
+
+        <h3 class="text-2xl font-medium mb-2"><code>pkg/jsonutil/formatter.go</code> (Core logic for JSON formatting)</h3>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>package jsonutil
+
+import (
+	"bytes"
+	"encoding/json"
+)
+
+// FormatJSON takes a raw JSON string and returns a pretty-printed version.
+func FormatJSON(input string) (string, error) {
+	var prettyJSON bytes.Buffer
+	// json.Indent requires a reader as input and a writer as output
+	// It will unmarshal and then marshal the JSON with indentation
+	err := json.Indent(&prettyJSON, []byte(input), "", "  ") // "  " for 2-space indent
+	if err != nil {
+		return "", err
+	}
+	return prettyJSON.String(), nil
+}</code></pre>
+
+        <h3 class="text-2xl font-medium mb-2"><code>pkg/jsonutil/validator.go</code> (Core logic for JSON validation)</h3>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>package jsonutil
+
+import "encoding/json"
+
+// IsValidJSON checks if the given input string is valid JSON.
+func IsValidJSON(input string) bool {
+	var js json.RawMessage
+	return json.Unmarshal([]byte(input), &js) == nil
+}</code></pre>
+
+        <h3 class="text-2xl font-medium mb-2"><code>pkg/util/input.go</code> (General utility for input handling)</h3>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>package util
+
+import (
+	"fmt"
+	"io" 
+	"os"
+	"strings"
+)
+
+// GetInput reads input from a string flag, a file flag, or stdin.
+// Precedence: stringInput > filePath > stdin.
+func GetInput(stringInput, filePath string) (string, error) {
+	if stringInput != "" {
+		return stringInput, nil
+	}
+
+	if filePath != "" {
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			return "", fmt.Errorf("error reading file %s: %w", filePath, err)
+		}
+		return string(content), nil
+	}
+
+	// Read from stdin if no flags are provided
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		// Input is being piped from stdin
+		bytes, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return "", fmt.Errorf("error reading from stdin: %w", err)
+		}
+		return strings.TrimSpace(string(bytes)), nil
+	}
+
+	return "", nil // No input provided
+}</code></pre>
+
+        <h3 class="text-2xl font-medium mb-2">How to Run (After creating files):</h3>
+
+        <h4 class="text-xl font-medium mb-2">Create a Makefile in the root <code>devneeds/</code> directory:</h4>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>.PHONY: build run test clean
+
+BUILD_PATH = ./bin
+APP_NAME = devneeds
+
+build:
+	go build -o $(BUILD_PATH)/$(APP_NAME) ./cmd/devneeds
+
+run: build
+	$(BUILD_PATH)/$(APP_NAME) help
+
+run-json-format: build
+	echo '{"name": "Alice"}' | $(BUILD_PATH)/$(APP_NAME) json format
+
+clean:
+	go clean -i ./cmd/devneeds
+	rm -rf $(BUILD_PATH)</code></pre>
+
+        <h4 class="text-xl font-medium mb-2">Then, from the <code>devneeds/</code> directory, you would run:</h4>
+        <pre class="bg-gray-200 p-3 rounded-lg text-sm mb-4"><code>make run-json-format # Example: formats JSON input
+make build           # Builds the devneeds executable
+make run             # Runs the devneeds executable</code></pre>
+
+        <h2 class="text-3xl font-semibold mb-4 rounded-md">5. Structuring for Future GUI</h2>
+
+        <p class="mb-4">The key to a smooth transition to a GUI is the <code>pkg/</code> directory.</p>
+
+        <ul class="list-disc pl-5 space-y-2 mb-6">
+            <li><strong><code>pkg/</code> (Core Logic):</strong> This directory will contain all the "business logic" or "tool logic" for <code>devNeeds</code>. Functions here should:
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li>Take simple Go types (strings, ints, structs) as input.</li>
+                    <li>Return simple Go types and <code>error</code> if something goes wrong.</li>
+                    <li><strong>NOT</strong> interact directly with the CLI (e.g., <code>fmt.Println</code>, <code>os.Exit</code>).</li>
+                    <li><strong>NOT</strong> interact directly with GUI elements.</li>
+                    <li>Be self-contained and testable.</li>
+                    <li>Example: <code>pkg/jsonutil.FormatJSON(input string) (string, error)</code></li>
+                </ul>
+            </li>
+            <li><strong><code>cmd/</code> (CLI Presentation Layer):</strong> The Cobra commands in <code>cmd/devneeds/</code> will act as the CLI "presentation layer." They will:
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li>Parse command-line flags and arguments.</li>
+                    <li>Read input from <code>stdin</code> or files.</li>
+                    <li>Call the appropriate functions from <code>pkg/</code>.</li>
+                    <li>Print output to <code>stdout</code> or <code>stderr</code>.</li>
+                    <li>Handle CLI-specific error reporting.</li>
+                </ul>
+            </li>
+            <li><strong>Future GUI (GUI Presentation Layer):</strong> When you build a GUI (e.g., with Fyne, Walk, or a web-based framework), it will also act as a "presentation layer." It will:
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li>Get input from text fields, buttons, etc.</li>
+                    <li>Call the <em>same functions</em> from <code>pkg/</code>.</li>
+                    <li>Display output in GUI elements (text areas, labels).</li>
+                    <li>Show error messages in dialog boxes or status bars.</li>
+                </ul>
+            </li>
+        </ul>
+        <p class="mb-6">By keeping <code>pkg/</code> clean and independent of any specific UI, you create a powerful backend that can be consumed by multiple frontends (CLI, GUI, Web API, etc.) with minimal code changes.</p>
+
+        <h2 class="text-3xl font-semibold mb-4 rounded-md">6. Plugin Implementation Outlines</h2>
+
+        <p class="mb-4">Here's how you can approach each of your initial plugins, leveraging Go's standard library and structuring for modularity.</p>
+
+        <p class="mb-4">For each plugin, remember to:</p>
+        <ol class="list-decimal pl-5 space-y-2 mb-6">
+            <li>Create a new sub-package in <code>pkg/</code> (e.g., <code>pkg/base64util</code>).</li>
+            <li>Define the core function(s) in that package.</li>
+            <li>Create a corresponding Cobra command file in <code>cmd/devneeds/</code> (e.g., <code>base64.go</code>).</li>
+            <li>Add the new command to <code>rootCmd.AddCommand()</code> in <code>cmd/devneeds/root.go</code>.</li>
+            <li>Define flags for the command.</li>
+            <li>Call the <code>pkg/</code> function from the Cobra command's <code>RunE</code> method.</li>
+            <li>Handle input (from flag, file, or stdin using <code>pkg/util.GetInput</code>).</li>
+        </ol>
+
+        <h3 class="text-2xl font-medium mb-2">1. JSON Formatter</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/jsonutil/formatter.go</code></li>
+            <li><strong>Function:</strong> <code>func FormatJSON(input string) (string, error)</code></li>
+            <li><strong>Go Packages:</strong> <code>encoding/json</code>, <code>bytes</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds json format [--input &lt;string&gt; | --file &lt;path&gt;]</code></li>
+            <li><strong>Logic:</strong> Use <code>json.Indent</code> to pretty-print the input JSON string.</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">2. Base64 Encoder/Decoder</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/base64util/converter.go</code></li>
+            <li><strong>Functions:</strong>
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li><code>func Encode(input string) string</code></li>
+                    <li><code>func Decode(input string) (string, error)</code></li>
+                </ul>
+            </li>
+            <li><strong>Go Packages:</strong> <code>encoding/base64</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds base64 encode [--input &lt;string&gt; | --file &lt;path&gt;]</code> and <code>devneeds base64 decode [--input &lt;string&gt; | --file &lt;path&gt;]</code></li>
+            <li><strong>Logic:</strong> Use <code>base64.StdEncoding.EncodeToString</code> and <code>base64.StdEncoding.DecodeString</code>.</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">3. Hash Generator (MD5, SHA1, SHA256)</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/hashutil/generator.go</code></li>
+            <li><strong>Function:</strong> <code>func GenerateHash(input, algorithm string) (string, error)</code></li>
+            <li><strong>Go Packages:</strong> <code>crypto/md5</code>, <code>crypto/sha1</code>, <code>crypto/sha256</code>, <code>fmt</code>, <code>io</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds hash [--input &lt;string&gt; | --file &lt;path&gt;] --algo &lt;md5|sha1|sha256&gt;</code></li>
+            <li><strong>Logic:</strong> Based on <code>algorithm</code> parameter, use the respective <code>hash.New()</code> function, write input bytes to it, and then use <code>hash.Sum(nil)</code> to get the hash bytes. Format to hex string (<code>fmt.Sprintf("%x", hashBytes)</code>).</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">4. UUID Generator</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/uuidutil/generator.go</code></li>
+            <li><strong>Function:</strong> <code>func GenerateUUID() string</code></li>
+            <li><strong>Go Packages (External):</strong> <code>github.com/google/uuid</code> (install with <code>go get github.com/google/uuid</code>)</li>
+            <li><strong>Cobra Command:</strong> <code>devneeds uuid [--count &lt;N&gt;]</code></li>
+            <li><strong>Logic:</strong> Call <code>uuid.New().String()</code>. Loop <code>N</code> times if a count flag is provided.</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">5. Timestamp Converter (UNIX &lt;-&gt; Readable Datetime)</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/timeutil/converter.go</code></li>
+            <li><strong>Functions:</strong>
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li><code>func ToTimestamp(datetimeStr string) (int64, error)</code></li>
+                    <li><code>func ToDateTime(timestamp int64) (string, error)</code></li>
+                </ul>
+            </li>
+            <li><strong>Go Packages:</strong> <code>time</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds timestamp [--input &lt;timestamp|datetime&gt;] [--to-datetime | --to-timestamp]</code></li>
+            <li><strong>Logic:</strong>
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li>To timestamp: Use <code>time.Parse</code> with a known layout (e.g., <code>time.RFC3339</code>) then <code>.Unix()</code>.</li>
+                    <li>To datetime: Use <code>time.Unix(timestamp, 0)</code> then <code>.Format()</code>.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">6. Clipboard Copy</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/clipboard/copy.go</code></li>
+            <li><strong>Function:</strong> <code>func CopyToClipboard(text string) error</code></li>
+            <li><strong>Go Packages (External):</strong> <code>github.com/atotto/clipboard</code> (This is a cross-platform library)</li>
+            <li><strong>Cobra Command:</strong> <code>devneeds copy [--input &lt;string&gt; | --file &lt;path&gt;]</code></li>
+            <li><strong>Logic:</strong> Call <code>clipboard.WriteAll(text)</code>. Handle errors.</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">7. Simple Text Case Converter (Uppercase, Lowercase, Titlecase)</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/textutil/caseconverter.go</code></li>
+            <li><strong>Functions:</strong>
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li><code>func ToUppercase(s string) string</code></li>
+                    <li><code>func ToLowercase(s string) string</code></li>
+                    <li><code>func ToTitlecase(s string) string</code></li>
+                </ul>
+            </li>
+            <li><strong>Go Packages:</strong> <code>strings</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds textcase [--input &lt;string&gt; | --file &lt;path&gt;] --type &lt;upper|lower|title&gt;</code></li>
+            <li><strong>Logic:</strong> Use <code>strings.ToUpper</code>, <code>strings.ToLower</code>, <code>strings.Title</code>. Note: <code>strings.Title</code> is deprecated for robust Unicode title casing in favor of <code>golang.org/x/text/cases</code> (e.g., <code>cases.Title(language.English)</code>). For this learning project, <code>strings.Title</code> is acceptable, but for production code, consider the <code>golang.org/x/text/cases</code> package for a more complete and future-proof solution.</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">8. Line Counter (Lines, Words, Characters)</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/textutil/linecounter.go</code></li>
+            <li><strong>Function:</strong> <code>func Count(text string) (lines, words, chars int)</code></li>
+            <li><strong>Go Packages:</strong> <code>bufio</code>, <code>strings</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds count [--input &lt;string&gt; | --file &lt;path&gt;]</code></li>
+            <li><strong>Logic:</strong>
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li>Lines: Use <code>strings.Count(text, "\n") + 1</code> (handle empty string).</li>
+                    <li>Words: Use <code>bufio.Scanner</code> with <code>scanner.Split(bufio.ScanWords)</code>.</li>
+                    <li>Characters: <code>len([]rune(text))</code> for Unicode characters.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">9. URL Encoder/Decoder</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/urlutil/converter.go</code></li>
+            <li><strong>Functions:</strong>
+                <ul class="list-circle pl-5 mt-1 space-y-1">
+                    <li><code>func URLEncode(s string) string</code></li>
+                    <li><code>func URLDecode(s string) (string, error)</code></li>
+                </ul>
+            </li>
+            <li><strong>Go Packages:</strong> <code>net/url</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds url encode [--input &lt;string&gt; | --file &lt;path&gt;]</code> and <code>devneeds url decode [--input &lt;string&gt; | --file &lt;path&gt;]</code></li>
+            <li><strong>Logic:</strong> Use <code>url.QueryEscape</code> and <code>url.QueryUnescape</code>.</li>
+        </ul>
+
+        <h3 class="text-2xl font-medium mb-2">10. JSON Validator</h3>
+        <ul class="list-disc pl-5 space-y-1 mb-4">
+            <li><strong>Pkg:</strong> <code>pkg/jsonutil/validator.go</code></li>
+            <li><strong>Function:</strong> <code>func IsValidJSON(input string) bool</code></li>
+            <li><strong>Go Packages:</strong> <code>encoding/json</code></li>
+            <li><strong>Cobra Command:</strong> <code>devneeds json validate [--input &lt;string&gt; | --file &lt;path&gt;]</code></li>
+            <li><strong>Logic:</strong> Attempt to unmarshal the JSON into a <code>json.RawMessage</code> or an empty interface (<code>interface{}</code>), check if the <code>json.Unmarshal</code> returns an error. This is already covered in the <code>json.go</code> example.</li>
+        </ul>
+
+        <p class="text-lg leading-relaxed mt-8">This detailed guide should give you a strong foundation to start building <code>devNeeds</code>. Remember to tackle each plugin one by one, focusing on getting the core <code>pkg/</code> logic correct and well-tested before integrating it into Cobra. Good luck!</p>
+    </div>
+</body>
+</html>
+
