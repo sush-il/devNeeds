@@ -1,0 +1,13 @@
+{
+  "this": "is",
+  "an": {
+    "example": "json",
+    "file": {
+      "lets": "do",
+      "some": "deep",
+      "nesting": "."
+    },
+    "out": "a layer"
+  },
+  "root": "layer"
+}

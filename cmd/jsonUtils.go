@@ -5,6 +5,8 @@ Copyright © 2025 github.com/sush-il
 package cmd
 
 import (
+	"log"
+
 	"github.com/spf13/cobra"
 	jsonUtils "github.com/sush-il/devNeeds/plugins/json"
 )
@@ -12,6 +14,8 @@ import (
 var( 
 	formatFileFlag bool
 	checkValidFlag bool
+	indentType string
+	indentLevel int
 )
 
 var jsonUtilsCmd = &cobra.Command{
@@ -19,8 +23,18 @@ var jsonUtilsCmd = &cobra.Command{
 	Short: "Various utilities to work with json files/strings",
 	Long: ``,
 	Run: func(cmd *cobra.Command, args []string) {
+		if cmd.Flags().Changed("indentType") && !formatFileFlag {
+			log.Println("indentType flag can only be used when formatting file")
+			return
+		}
+
+		if cmd.Flags().Changed("indentLevel") && indentType != "space" {
+			log.Println("indentLevel can only be set when indentType is 'space'")
+			return
+		}
+		
 		if formatFileFlag {
-			jsonUtils.FormatJSON(args)
+			jsonUtils.FormatJSON(args, indentType, indentLevel)
 		} else if checkValidFlag {
 			jsonUtils.CheckValidJSON(args)
 		}
@@ -32,6 +46,8 @@ func init() {
 
 	// flags and configuration settings.
 	jsonUtilsCmd.Flags().BoolVarP(&formatFileFlag, "format", "f", false, "Pretty format a JSON file")
-	jsonUtilsCmd.Flags().BoolVarP(&checkValidFlag, "checkValid", "c", false, "Check for errors in JSON syntax")
+	jsonUtilsCmd.Flags().BoolVarP(&checkValidFlag, "checkValid", "v", false, "Check for errors in JSON syntax")
+	jsonUtilsCmd.Flags().StringVar(&indentType, "indentType", "space", "Type of indent: space or tab")
+	jsonUtilsCmd.Flags().IntVar(&indentLevel, "indentLevel", 2, "Indent Level when indent type of space")
 
 }
