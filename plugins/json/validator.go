@@ -2,20 +2,27 @@ package jsonUtils
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
+
+	"github.com/sush-il/devNeeds/utils/pluginsCommon"
 )
 
-func CheckValidJSON(jsonFilePaths []string) string{
+func CheckValidJSON(jsonFilePaths []string) {
+    for _, filePath := range jsonFilePaths {
+        fileContent, err := pluginsCommon.ReadFile(filePath)
+        if err != nil {
+            log.Println(err)
+            continue
+        }
+        var unmarshalValue any 
+        unmarshalError := json.Unmarshal(fileContent, &unmarshalValue)
 
-	jsonString := `{"hello":{"someKey": "someValue"}}`
-    var unmarshalledValue any
+        if unmarshalError != nil{
+            log.Printf("The file %s is invalid; %v", filePath, unmarshalError)
+            continue
+        }
 
-    err := json.Unmarshal([]byte(jsonString), &unmarshalledValue)
-    if err != nil {
-        fmt.Println("Invalid json.", err) 
-		return fmt.Sprintf("Invalid JSON: %v", err)
+        log.Printf("The file %s is valid.", filePath)
     }
-
-    fmt.Println("Parsed JSON:", unmarshalledValue)
-    return "JSON is valid"
+    log.Println("Validation of all JSON files is complete.")
 }
