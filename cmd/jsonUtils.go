@@ -14,6 +14,7 @@ import (
 var( 
 	formatFileFlag bool
 	checkValidFlag bool
+	minifyFlag bool
 	indentType string
 	indentLevel int
 )
@@ -37,6 +38,8 @@ var jsonUtilsCmd = &cobra.Command{
 			jsonUtils.FormatJSON(args, indentType, indentLevel)
 		} else if checkValidFlag {
 			jsonUtils.CheckValidJSON(args)
+		} else if minifyFlag {
+			jsonUtils.Minify(args)
 		}
 	},
 }
@@ -49,5 +52,6 @@ func init() {
 	jsonUtilsCmd.Flags().BoolVarP(&checkValidFlag, "checkValid", "v", false, "Check for errors in JSON syntax")
 	jsonUtilsCmd.Flags().StringVar(&indentType, "indentType", "space", "Type of indent: space or tab")
 	jsonUtilsCmd.Flags().IntVar(&indentLevel, "indentLevel", 2, "Indent Level when indent type of space")
+	jsonUtilsCmd.Flags().BoolVarP(&minifyFlag, "minify", "m", false, "Remove whitespace from JSON files.")
 
 }
