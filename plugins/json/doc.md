@@ -8,3 +8,6 @@
 
 ### Checking Validity
 --checkValid -v Check if a JSON file is valid
+
+### Minify JSON 
+--minify -m Minify the JSON file, remove all whitespaces

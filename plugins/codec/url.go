@@ -1,4 +1,4 @@
-package encode
+package codec 
 
 import (
 	"fmt"
