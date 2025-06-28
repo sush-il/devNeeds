@@ -1,0 +1,48 @@
+name: Format Go files on PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: ["*"]
+
+jobs:
+  formatChangedFiles:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for full git history
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '^1.22.x'
+
+      - name: Get changed Go files
+        id: get_changes
+        run: |
+          git fetch origin main
+          FILES=$(git diff --name-only origin/main...HEAD -- '*.go')
+          echo "$FILES"
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: Format changed Go files
+        run: |
+          for file in ${{ steps.get_changes.outputs.files }}; do
+            gofmt -w "$file"
+          done
+
+      - name: Commit and push changes
+        if: steps.get_changes.outputs.files != ''
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No formatting changes to commit."
+          else
+            git commit -m "chore: format go files"
+            git push
+          fi
