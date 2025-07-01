@@ -1,48 +1,42 @@
-name: Format Go files on PR
+name: Format Go files
 
-on:
-  pull_request:
-    types: [opened, synchronize]
-    branches: ["*"]
+on: pull_request
 
 jobs:
-  formatChangedFiles:
+  prettyFormat:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Required for full git history
+          ref: ${{ github.head_ref }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '^1.22.x'
+          go-version: '^1.22'
 
-      - name: Get changed Go files
-        id: get_changes
+      - name: Format Go files
+        id: changes
         run: |
-          git fetch origin main
-          FILES=$(git diff --name-only origin/main...HEAD -- '*.go')
-          echo "$FILES"
-          echo "files=$FILES" >> $GITHUB_OUTPUT
-
-      - name: Format changed Go files
-        run: |
-          for file in ${{ steps.get_changes.outputs.files }}; do
-            gofmt -w "$file"
-          done
-
-      - name: Commit and push changes
-        if: steps.get_changes.outputs.files != ''
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add .
-          if git diff --cached --quiet; then
-            echo "No formatting changes to commit."
+          find . -type f -name "*.go" -exec gofmt -w {} +
+          
+          if git diff --quiet; then
+            echo "changesAvailable=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "chore: format go files"
-            git push
+            echo "changesAvailable=true" >> $GITHUB_OUTPUT
           fi
+
+      - name: Apply changes
+        if: steps.changes.outputs.changesAvailable == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add .
+          git commit -m "Auto format Go files" || echo "No changes to commit"
+          git push origin "${{ github.head_ref }}" --force
