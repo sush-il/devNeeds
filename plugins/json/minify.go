@@ -17,7 +17,7 @@ func Minify(jsonFilePaths []string) {
 			log.Println(err)
 			continue
 		}
-		
+
 		var compactContents bytes.Buffer
 		if err := json.Compact(&compactContents, fileContent); err != nil {
 			log.Printf("Error occurred while compacting JSON: %v", err)
@@ -31,6 +31,6 @@ func Minify(jsonFilePaths []string) {
 		}
 
 		log.Println("Completed creating a compact version of JSON files.")
-		 
+
 	}
 }

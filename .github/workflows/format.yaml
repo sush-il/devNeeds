@@ -1,0 +1,42 @@
+name: Format Go files
+
+on: pull_request
+
+jobs:
+  prettyFormat:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '^1.22'
+
+      - name: Format Go files
+        id: changes
+        run: |
+          find . -type f -name "*.go" -exec gofmt -w {} +
+          
+          if git diff --quiet; then
+            echo "changesAvailable=false" >> $GITHUB_OUTPUT
+          else
+            echo "changesAvailable=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Apply changes
+        if: steps.changes.outputs.changesAvailable == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          git add .
+          git commit -m "Auto format Go files" || echo "No changes to commit"
+          git push origin "${{ github.head_ref }}" --force
