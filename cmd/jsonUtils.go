@@ -5,7 +5,7 @@ Copyright © 2025 github.com/sush-il
 package cmd
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	jsonUtils "github.com/sush-il/devNeeds/plugins/json"
@@ -22,18 +22,13 @@ var (
 var jsonUtilsCmd = &cobra.Command{
 	Use:   "json",
 	Short: "Various utilities to work with json files/strings",
-	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		if cmd.Flags().Changed("indentType") && !formatFileFlag {
-			log.Println("indentType flag can only be used when formatting file")
-			return
-		}
-
-		if cmd.Flags().Changed("indentLevel") && indentType != "space" {
-			log.Println("indentLevel can only be set when indentType is 'space'")
-			return
-		}
-
+	Args: cobra.MinimumNArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+	
+		if err:= validateFlags(cmd); err != nil {
+			return err
+		}	
+		
 		if formatFileFlag {
 			jsonUtils.FormatJSON(args, indentType, indentLevel)
 		} else if checkValidFlag {
@@ -41,7 +36,39 @@ var jsonUtilsCmd = &cobra.Command{
 		} else if minifyFlag {
 			jsonUtils.Minify(args)
 		}
+
+		return nil
 	},
+}
+
+func validateFlags(cmd *cobra.Command) error {
+	if cmd.Flags().Changed("indentType") && !formatFileFlag {
+		return fmt.Errorf("indentType flag can only be used with format flag")	
+	}
+
+	if cmd.Flags().Changed("indentLevel") && indentType != "space" {
+		return fmt.Errorf("indentLevel can only be set when indentType is 'space'")	
+	}
+
+	actions := 0
+	if formatFileFlag {
+		actions++
+	}
+	if checkValidFlag {
+		actions++
+	}
+	if minifyFlag {
+		actions++
+	}
+
+	if actions == 0 {
+		return fmt.Errorf("Please provide one of --format, --checkValid, or --minify")
+	}
+	if actions > 1 {
+		return fmt.Errorf("Please use only one of --format, --checkValid, or --minify at a time")
+	}
+
+	return nil
 }
 
 func init() {
