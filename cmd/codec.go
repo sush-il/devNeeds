@@ -7,7 +7,7 @@ import (
 
 var (
 	encodeURL      bool
-	converToBase64 bool
+	convertToBase64 bool
 )
 
 var codecCmd = &cobra.Command{
@@ -16,7 +16,7 @@ var codecCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if encodeURL {
 			codec.EncodeURL(args)
-		} else if converToBase64 {
+		} else if convertToBase64 {
 			codec.ConvertToBase64(args)
 		}
 	},
@@ -27,5 +27,5 @@ func init() {
 	rootCmd.AddCommand(codecCmd)
 
 	codecCmd.Flags().BoolVar(&encodeURL, "encodeURL", false, "Encode URL")
-	codecCmd.Flags().BoolVarP(&converToBase64, "converToBase64", "b", false, "Encode text file to base64")
+	codecCmd.Flags().BoolVarP(&convertToBase64, "converToBase64", "b", false, "Encode text file to base64")
 }
