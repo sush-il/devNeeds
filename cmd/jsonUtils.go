@@ -25,7 +25,7 @@ var jsonUtilsCmd = &cobra.Command{
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 	
-		if err:= validateFlags(cmd); err != nil {
+		if err:= validateJsonFlags(cmd); err != nil {
 			return err
 		}	
 		
@@ -41,7 +41,7 @@ var jsonUtilsCmd = &cobra.Command{
 	},
 }
 
-func validateFlags(cmd *cobra.Command) error {
+func validateJsonFlags(cmd *cobra.Command) error {
 	if cmd.Flags().Changed("indentType") && !formatFileFlag {
 		return fmt.Errorf("indentType flag can only be used with format flag")	
 	}
